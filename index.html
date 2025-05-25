@@ -14,7 +14,7 @@
         }
         setInterval(uhrzeitAnzeigen, 1000); // Aktualisiere jede Sekunde
     </script>
-    <title>Uhrzeit</title>
+    <title>Webseite Uhrzeit</title>
     <style>
         body {
             margin: 0;
@@ -44,38 +44,33 @@
             object-fit: cover;
             filter: brightness(0.3);
             z-index: -1;
+        }
         .zeit {
-                    font-size: clamp(70px, 20vw, 200px); /* Dynamische Schriftgröße */
-                    margin: 0;
-                    font-size: 120px; /* Fixe Größe, bleibt gleich auf allen Auflösungen */
-                }
-                
+            font-size: clamp(70px, 20vw, 200px); /* Dynamische Schriftgröße */
+            margin: 0;
+        }
         .Zeiten {
             font-size: clamp(40px, 15vw, 80px); /* Dynamische Schriftgröße */
             margin-top: 0px; /* Verringerter Abstand */
-            font-size: 60px; /* Konstante Größe */
-                }
+        }
 
-        
         .Hinweise {
             font-size: clamp(25px, 15vw, 50px); /* Dynamische Schriftgröße */
             margin-top: -100px; /* Verringerter Abstand */
             text-align: left; /* Linksbündige Ausrichtung */
             margin-right: 1%;
-            font-size: 40px; /* Einheitlich über verschiedene Displays */
-                }
+        }
 
-        
         .Logo {
             position: absolute;
             top: 5%;
             right: 5%;
             width: clamp(50px, 10vw, 150px); /* Dynamische Größe des Logos */
-            width: 100px; /* Logo bleibt gleich groß */
-                }
+        }
     </style>
 </head>
 <body>
+    <img class="hintergrund" src="img/Klasse2.jpg" alt="Hintergrund">
     <img class="hintergrund" src="img/klasse2.jpg" alt="Hintergrund">
     <div class="container">
         <h1 class="zeit" id="uhrzeit"></h1>
