@@ -58,19 +58,7 @@
         }
     </style>
 </head>
-    <script>
-        function uhrzeitAnzeigen() {
-            const jetzt = new Date();
-            const stunden = jetzt.getHours();
-            const minutenzahl = jetzt.getMinutes();
-            const minuten = minutenzahl < 10 ? "0" + minutenzahl : minutenzahl;
-            const uhrzeit = `${stunden}:${minuten}`;
-            document.getElementById("uhrzeit").textContent = uhrzeit;
-        }
-    
-        uhrzeitAnzeigen(); // sofort beim Laden ausführen
-        setInterval(uhrzeitAnzeigen, 1000); // danach jede Sekunde aktualisieren
-    </script>
+
 <body>
     <img class="hintergrund" src="img/klasse2.jpg" alt="Hintergrund">
     <div class="container">
@@ -86,8 +74,22 @@
         </div>
     </div>
     <img class="Logo" src="img/Logo THS.png" alt="Logo">
+    <script>
+        function uhrzeitAnzeigen() {
+            const jetzt = new Date();
+            const stunden = jetzt.getHours();
+            const minutenzahl = jetzt.getMinutes();
+            const minuten = minutenzahl < 10 ? "0" + minutenzahl : minutenzahl;
+            const uhrzeit = `${stunden}:${minuten}`;
+            document.getElementById("uhrzeit").textContent = uhrzeit;
+        }
+    
+        uhrzeitAnzeigen(); // sofort beim Laden ausführen
+        setInterval(uhrzeitAnzeigen, 1000); // danach jede Sekunde aktualisieren
+    </script>
 </body>
 </html>
+
 
 
 
