@@ -3,17 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=2.0">
-    <script>
-        function uhrzeitAnzeigen() {
-            const jetzt = new Date();
-            const stunden = jetzt.getHours();
-            const minutenzahl = jetzt.getMinutes();
-            const minuten = minutenzahl < 10 ? "0" + minutenzahl : minutenzahl;
-            const uhrzeit = `${stunden}:${minuten}`;
-            document.getElementById("uhrzeit").textContent = uhrzeit;
-        }
-        setInterval(uhrzeitAnzeigen, 1000); // Aktualisiere jede Sekunde
-    </script>
     <title>Uhrzeit</title>
     <style>
         body {
@@ -46,33 +35,45 @@
             z-index: -1;
         }
         .zeit {
-            font-size: clamp(60px, 60vw, 300px); /* Dynamische Schriftgröße */
+            font-size: clamp(60px, 20vw, 300px); /* etwas moderater */
             margin: 0;
         }
         .Zeiten {
-            font-size: clamp(30px, 30vw, 150px); /* Dynamische Schriftgröße */
-            margin-top: 0px; /* Verringerter Abstand */
+            font-size: clamp(30px, 10vw, 150px);
+            margin-top: 0;
         }
-
         .Hinweise {
-            font-size: clamp(20px, 20vw, 100px); /* Dynamische Schriftgröße */
-            margin-top: -100px; /* Verringerter Abstand */
-            text-align: left; /* Linksbündige Ausrichtung */
+            font-size: clamp(20px, 8vw, 100px);
+            position: relative;
+            top: -50px; /* statt negativem margin */
+            text-align: left;
             margin-right: 1%;
         }
-
         .Logo {
             position: absolute;
             top: 5px;
             right: 5px;
-            width: clamp(50px, 50vw, 150px); /* Dynamische Größe des Logos */
+            width: clamp(50px, 15vw, 150px);
+            max-width: 150px; /* zusätzliche Begrenzung */
         }
     </style>
+    <script>
+        function uhrzeitAnzeigen() {
+            const jetzt = new Date();
+            const stunden = jetzt.getHours();
+            const minutenzahl = jetzt.getMinutes();
+            const minuten = minutenzahl < 10 ? "0" + minutenzahl : minutenzahl;
+            const uhrzeit = `${stunden}:${minuten}`;
+            document.getElementById("uhrzeit").textContent = uhrzeit;
+        }
+        uhrzeitAnzeigen(); // sofort beim Laden ausführen
+        setInterval(uhrzeitAnzeigen, 1000); // danach jede Sekunde aktualisieren
+    </script>
 </head>
 <body>
     <img class="hintergrund" src="img/klasse2.jpg" alt="Hintergrund">
     <div class="container">
-        <h1 class="zeit" id="uhrzeit"></h1>
+        <time class="zeit" id="uhrzeit" aria-live="polite"></time>
         <div class="Zeiten">
             <p contenteditable="true">Zeit von Anfang bis Ende :-)</p>
         </div>
