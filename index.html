@@ -3,18 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=2.0">
-    <script>
-        function uhrzeitAnzeigen() {
-            const jetzt = new Date();
-            const stunden = jetzt.getHours();
-            const minutenzahl = jetzt.getMinutes();
-            const minuten = minutenzahl < 10 ? "0" + minutenzahl : minutenzahl;
-            const uhrzeit = `${stunden}:${minuten}`;
-            document.getElementById("uhrzeit").textContent = uhrzeit;
-        }
-        uhrzeitAnzeigen(); // sofort beim Laden ausführen
-        setInterval(uhrzeitAnzeigen, 1000); // danach jede Sekunde aktualisieren
-    </script>
     <title>Uhrzeit</title>
     <style>
         body {
@@ -47,7 +35,7 @@
             z-index: -1;
         }
         .zeit {
-            font-size: clamp(60px, 20vw, 300px); /* etwas moderater */
+            font-size: clamp(60px, 20vw, 300px);
             margin: 0;
         }
         .Zeiten {
@@ -57,7 +45,7 @@
         .Hinweise {
             font-size: clamp(20px, 8vw, 100px);
             position: relative;
-            top: -50px; /* statt negativem margin */
+            top: -50px;
             text-align: left;
             margin-right: 1%;
         }
@@ -66,7 +54,7 @@
             top: 5px;
             right: 5px;
             width: clamp(50px, 15vw, 150px);
-            max-width: 150px; /* zusätzliche Begrenzung */
+            max-width: 150px;
         }
     </style>
 </head>
@@ -85,7 +73,19 @@
         </div>
     </div>
     <img class="Logo" src="img/Logo THS.png" alt="Logo">
+
+    <!-- Script jetzt am Ende -->
+    <script>
+        function uhrzeitAnzeigen() {
+            const jetzt = new Date();
+            const stunden = jetzt.getHours();
+            const minutenzahl = jetzt.getMinutes();
+            const minuten = minutenzahl < 10 ? "0" + minutenzahl : minutenzahl;
+            const uhrzeit = `${stunden}:${minuten}`;
+            document.getElementById("uhrzeit").textContent = uhrzeit;
+        }
+        uhrzeitAnzeigen(); // sofort beim Laden ausführen
+        setInterval(uhrzeitAnzeigen, 1000); // danach jede Sekunde aktualisieren
+    </script>
 </body>
 </html>
-
-
