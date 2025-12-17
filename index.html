@@ -3,7 +3,7 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=0.6">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script>
         function uhrzeitAnzeigen() {
             const jetzt = new Date();
@@ -49,15 +49,15 @@
             z-index: -1;
         }
         .zeit {
-            font-size: clamp(60px, 20vw, 300px);
+            font-size: clamp(60px, 20vw, 200px);
             margin: 0;
         }
         .Zeiten {
-            font-size: clamp(30px, 10vw, 150px);
+            font-size: clamp(30px, 10vw, 100px);
             margin-top: 0;
         }
         .Hinweise {
-            font-size: clamp(20px, 8vw, 100px);
+            font-size: clamp(20px, 8vw, 80px);
             position: relative;
             top: -50px;
             text-align: left;
@@ -67,7 +67,7 @@
             position: absolute;
             top: 5px;
             right: 5px;
-            width: clamp(50px, 50vw, 150px); /* Dynamische Größe des Logos */
+            width: clamp(50px, 20vw, 100px); /* Dynamische Größe des Logos */
         }
     </style>
 </head>
@@ -88,5 +88,6 @@
     <img class="Logo" src="img/Logo THS.png" alt="Logo">
 </body>
 </html>
+
 
 
