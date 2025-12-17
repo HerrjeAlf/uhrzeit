@@ -12,7 +12,9 @@
             const uhrzeit = `${stunden}:${minuten}`;
             document.getElementById("uhrzeit").textContent = uhrzeit;
         }
-        setInterval(uhrzeitAnzeigen, 1000); // Aktualisiere jede Sekunde
+    
+        uhrzeitAnzeigen(); // sofort beim Laden ausführen
+        setInterval(uhrzeitAnzeigen, 1000); // danach jede Sekunde aktualisieren
     </script>
     <title>Uhrzeit</title>
     <style>
@@ -85,4 +87,5 @@
     <img class="Logo" src="img/Logo THS.png" alt="Logo">
 </body>
 </html>
+
 
