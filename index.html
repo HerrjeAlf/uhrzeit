@@ -4,6 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=2.0">
     <title>Uhrzeit</title>
+        <script>
+        function uhrzeitAnzeigen() {
+            const jetzt = new Date();
+            const stunden = jetzt.getHours();
+            const minutenzahl = jetzt.getMinutes();
+            const minuten = minutenzahl < 10 ? "0" + minutenzahl : minutenzahl;
+            const uhrzeit = `${stunden}:${minuten}`;
+            document.getElementById("uhrzeit").textContent = uhrzeit;
+        }
+        uhrzeitAnzeigen(); // sofort beim Laden ausführen
+        setInterval(uhrzeitAnzeigen, 1000); // danach jede Sekunde aktualisieren
+    </script>
     <style>
         body {
             margin: 0;
@@ -57,18 +69,6 @@
             max-width: 150px; /* zusätzliche Begrenzung */
         }
     </style>
-    <script>
-        function uhrzeitAnzeigen() {
-            const jetzt = new Date();
-            const stunden = jetzt.getHours();
-            const minutenzahl = jetzt.getMinutes();
-            const minuten = minutenzahl < 10 ? "0" + minutenzahl : minutenzahl;
-            const uhrzeit = `${stunden}:${minuten}`;
-            document.getElementById("uhrzeit").textContent = uhrzeit;
-        }
-        uhrzeitAnzeigen(); // sofort beim Laden ausführen
-        setInterval(uhrzeitAnzeigen, 1000); // danach jede Sekunde aktualisieren
-    </script>
 </head>
 <body>
     <img class="hintergrund" src="img/klasse2.jpg" alt="Hintergrund">
@@ -87,3 +87,4 @@
     <img class="Logo" src="img/Logo THS.png" alt="Logo">
 </body>
 </html>
+
