@@ -484,7 +484,15 @@
             logo: true,
             tag: ''
         };
-        const HINTERGRUENDE = ['', 'img/klasse1.jpg', 'img/klasse2.jpg', 'img/klasse3.jpg', 'img/klasse4.jpg', 'img/klasse5.jpg'];
+        // helligkeit: wie stark das Bild abgedunkelt wird, damit die Schrift gut lesbar bleibt
+        const HINTERGRUENDE = [
+            { bild: '', name: 'Schwarz', helligkeit: 1 },
+            { bild: 'img/klasse2.jpg', name: 'Klassenraum', helligkeit: 0.32 },
+            { bild: 'img/tafel.jpg', name: 'Tafel', helligkeit: 0.55 },
+            { bild: 'img/berge.jpg', name: 'Berge', helligkeit: 0.55 },
+            { bild: 'img/sternenhimmel.jpg', name: 'Sternenhimmel', helligkeit: 0.9 },
+            { bild: 'img/buecherregal.jpg', name: 'Bücherregal', helligkeit: 0.42 }
+        ];
         const DAUERN = [45, 90, 135, 180, 225, 270];
         const NTA_PROZENT = [0, 10, 20, 30];
 
@@ -507,7 +515,13 @@
             const z = Object.assign({}, STANDARD, gespeichert || {});
             // Titel und Zeiten gelten nur für den Tag, an dem sie eingestellt wurden
             if (z.tag !== heute()) Object.assign(z, { titel: '', beginn: '', ende: '', ntaProzent: 0 });
+            // Gespeicherte Bilder, die es nicht mehr gibt, durch den Standard ersetzen
+            if (!hintergrundEintrag(z.hintergrund)) z.hintergrund = STANDARD.hintergrund;
             return z;
+        }
+
+        function hintergrundEintrag(bild) {
+            return HINTERGRUENDE.find(h => h.bild === bild);
         }
 
         function speichern() {
@@ -577,7 +591,9 @@
             document.title = zustand.titel ? `${zustand.titel} – Klausuruhr` : 'Klausuruhr';
             $('datum').hidden = !zustand.datum;
             $('logo').hidden = !zustand.logo || $('logo').dataset.fehlt === '1';
-            $('hintergrund').style.backgroundImage = zustand.hintergrund ? `url("${zustand.hintergrund}")` : 'none';
+            const hintergrund = hintergrundEintrag(zustand.hintergrund) || HINTERGRUENDE[0];
+            $('hintergrund').style.backgroundImage = hintergrund.bild ? `url("${hintergrund.bild}")` : 'none';
+            $('hintergrund').style.filter = `brightness(${hintergrund.helligkeit})`;
             $('anzeige').classList.toggle('nebeneinander', zustand.layout === 'nebeneinander');
 
             const zeilen = hinweisZeilen(zustand.hinweise);
@@ -771,11 +787,12 @@
                 $('eHinweise').value = zustand.hinweise;
             }));
 
-            HINTERGRUENDE.forEach((bild, i) => {
-                const k = knopf(bild ? '' : 'Schwarz', { bg: bild }, $('bgRaster'));
+            HINTERGRUENDE.forEach(({ bild, name }) => {
+                const k = knopf(bild ? '' : name, { bg: bild }, $('bgRaster'));
+                k.title = name;
                 if (bild) {
                     k.style.backgroundImage = `url("${bild}")`;
-                    k.setAttribute('aria-label', `Hintergrund ${i}`);
+                    k.setAttribute('aria-label', name);
                 }
                 k.addEventListener('click', () => aendern({ hintergrund: bild }));
             });
