@@ -1,97 +1,910 @@
-
 <!DOCTYPE html>
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Uhrzeit</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Klausuruhr</title>
     <style>
+        :root {
+            --schrift: "Segoe UI", system-ui, -apple-system, Roboto, "Helvetica Neue", Arial, sans-serif;
+            --text: #ffffff;
+            --text-gedimmt: rgba(255, 255, 255, 0.72);
+            --karte: rgba(10, 12, 16, 0.55);
+            --linie: rgba(255, 255, 255, 0.16);
+            --gruen: #4ade80;
+            --gelb: #fbbf24;
+            --rot: #f87171;
+            --akzent: #f28c28;
+            --panel: #15171c;
+            --panel-feld: #23262e;
+            --panel-linie: #343844;
+            --panel-text: #eceef2;
+            --panel-gedimmt: #9aa0ad;
+        }
+        * { box-sizing: border-box; }
+        [hidden] { display: none !important; }
+        html, body { height: 100%; }
         body {
             margin: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            background-color: black;
-            font-family: Times New Roman, serif;
-            color: white;
-            text-align: center;
+            background: #000;
+            color: var(--text);
+            font-family: var(--schrift);
             overflow: hidden;
+            -webkit-font-smoothing: antialiased;
         }
-        .container {
+        body:not(.aktiv) { cursor: none; }
+
+        /* ---------- Anzeige ---------- */
+        #hintergrund {
+            position: fixed;
+            top: 0; right: 0; bottom: 0; left: 0;
+            background: #000 center / cover no-repeat;
+            filter: brightness(0.32);
+            z-index: -1;
+        }
+        .anzeige {
+            height: 100vh;
+            height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            padding: 3vh 3.5vw;
+            text-shadow: 0 2px 14px rgba(0, 0, 0, 0.55);
+        }
+        .kopf {
+            flex: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 2vw;
+        }
+        .titel { font-size: min(4.4vh, 2.6vw); font-weight: 600; line-height: 1.2; }
+        .datum { font-size: min(3.2vh, 1.9vw); color: var(--text-gedimmt); margin-top: 0.3em; }
+        .logo { height: min(11vh, 8vw); width: auto; flex: none; }
+
+        .inhalt {
+            flex: 1;
+            min-height: 0;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            width: 100%;
+            gap: 3.5vh;
         }
-        .hintergrund {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
+        .uhrbereich {
+            flex: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+        .uhr {
+            font-size: min(25vh, 17vw);
+            font-weight: 600;
+            line-height: 1;
+            letter-spacing: -0.02em;
+            font-variant-numeric: tabular-nums;
+        }
+        .uhr .sek { font-size: 0.42em; font-weight: 400; color: var(--text-gedimmt); margin-left: 0.06em; }
+
+        .zeitinfo { width: min(68vw, 120vh); margin-top: 2.5vh; }
+        .zeitraum { font-size: min(4.4vh, 2.7vw); color: var(--text-gedimmt); }
+        .fortschritt {
+            height: min(1.4vh, 12px);
+            margin: 1.8vh 0 1.4vh;
+            background: rgba(255, 255, 255, 0.18);
+            border-radius: 99px;
+            overflow: hidden;
+        }
+        .fortschritt > div {
             height: 100%;
-            object-fit: cover;
-            filter: brightness(0.3);
-            z-index: -1;
+            width: 0;
+            background: var(--gruen);
+            border-radius: inherit;
+            transition: width 0.8s linear, background-color 0.4s;
         }
-        .zeit {
-            font-size: clamp(90px, 30vw, 300px);
-            margin: 0;
+        .restzeit { font-size: min(6.4vh, 3.8vw); font-weight: 600; font-variant-numeric: tabular-nums; }
+        .nta-zeile { font-size: min(3.4vh, 2.1vw); color: var(--text-gedimmt); margin-top: 0.8vh; }
+        .zeitinfo.vor .restzeit { color: var(--text-gedimmt); }
+        .zeitinfo.warn .restzeit,
+        .zeitinfo.nta .restzeit { color: var(--gelb); }
+        .zeitinfo.warn .fortschritt > div,
+        .zeitinfo.nta .fortschritt > div { background: var(--gelb); }
+        .zeitinfo.ende .restzeit { color: var(--rot); }
+        .zeitinfo.ende .fortschritt > div { background: var(--rot); }
+
+        .hinweise {
+            flex: 0 1 auto;
+            min-height: 0;
+            min-width: min(68vw, 120vh);
+            max-width: min(92vw, 165vh);
+            overflow: hidden;
+            padding: 0.8em 1.2em 0.9em;
+            background: var(--karte);
+            border: 1px solid var(--linie);
+            border-radius: 18px;
+            text-shadow: none;
+            font-size: 32px; /* wird per Skript an den Platz angepasst */
         }
-        .Zeiten {
-            font-size: clamp(30px, 10vw, 100px);
-            margin-top: 0;
+        .hinweise h2 {
+            margin: 0 0 0.35em;
+            font-size: 0.6em;
+            font-weight: 700;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: var(--akzent);
         }
-        .Hinweise {
-            font-size: clamp(20px, 8vw, 80px);
+        .hinweise ul { margin: 0; padding: 0; list-style: none; }
+        .hinweise li {
             position: relative;
-            top: -50px;
-            text-align: left;
-            margin-right: 1%;
+            margin: 0.2em 0;
+            padding-left: 1.1em;
+            line-height: 1.3;
+            overflow-wrap: anywhere;
         }
-        .Logo {
+        .hinweise li::before {
+            content: "";
             position: absolute;
-            top: 5px;
-            right: 5px;
-            width: clamp(50px, 20vw, 100px); /* Dynamische Größe des Logos */
+            left: 0.15em;
+            top: 0.46em;
+            width: 0.38em;
+            height: 0.38em;
+            border-radius: 50%;
+            background: var(--akzent);
+        }
+
+        /* Uhr links, Hinweise rechts – für lange Hinweistexte */
+        .anzeige.nebeneinander .inhalt { flex-direction: row; gap: 4vw; }
+        .anzeige.nebeneinander .uhrbereich { flex: 1 1 0; min-width: 0; }
+        .anzeige.nebeneinander .uhr { font-size: min(22vh, 11vw); }
+        .anzeige.nebeneinander .zeitinfo { width: 100%; }
+        .anzeige.nebeneinander .zeitraum { font-size: min(4vh, 2.2vw); }
+        .anzeige.nebeneinander .restzeit { font-size: min(5.6vh, 3vw); }
+        .anzeige.nebeneinander .nta-zeile { font-size: min(3.2vh, 1.8vw); }
+        .anzeige.nebeneinander .hinweise { flex: 1 1 0; min-width: 0; max-width: none; max-height: 100%; }
+
+        /* ---------- Bedienleiste (blendet sich nach kurzer Zeit aus) ---------- */
+        .steuerung {
+            position: fixed;
+            right: 2vw;
+            bottom: 2.5vh;
+            display: flex;
+            gap: 10px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s;
+            z-index: 10;
+        }
+        body.aktiv .steuerung { opacity: 1; pointer-events: auto; }
+        body.panel-offen .steuerung { opacity: 0; pointer-events: none; }
+        .steuerung button {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-height: 56px;
+            padding: 0 22px;
+            font: 600 18px var(--schrift);
+            color: #fff;
+            background: rgba(20, 22, 28, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.22);
+            border-radius: 999px;
+            cursor: pointer;
+        }
+        .steuerung button:hover { background: rgba(40, 43, 52, 0.9); }
+        .steuerung svg, .panel-kopf svg { width: 24px; height: 24px; flex: none; }
+
+        /* ---------- Einstellungen ---------- */
+        .abdeckung {
+            position: fixed;
+            top: 0; right: 0; bottom: 0; left: 0;
+            background: rgba(0, 0, 0, 0.25);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.25s;
+            z-index: 15;
+        }
+        .abdeckung.offen { opacity: 1; pointer-events: auto; }
+        .panel {
+            position: fixed;
+            top: 0; right: 0; bottom: 0;
+            width: min(470px, 100vw);
+            display: flex;
+            flex-direction: column;
+            background: var(--panel);
+            color: var(--panel-text);
+            border-left: 1px solid var(--panel-linie);
+            box-shadow: -20px 0 60px rgba(0, 0, 0, 0.5);
+            font-size: 17px;
+            color-scheme: dark;
+            accent-color: var(--akzent);
+            transform: translateX(105%);
+            visibility: hidden;
+            transition: transform 0.25s ease, visibility 0s 0.25s;
+            z-index: 20;
+        }
+        .panel.offen { transform: none; visibility: visible; transition: transform 0.25s ease; }
+        .panel-kopf {
+            flex: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 14px 20px;
+            border-bottom: 1px solid var(--panel-linie);
+        }
+        .panel-kopf h2 { margin: 0 auto 0 0; font-size: 20px; }
+        .panel-inhalt { flex: 1; overflow-y: auto; padding: 0 20px 28px; }
+        .panel section { padding: 18px 0 20px; border-bottom: 1px solid var(--panel-linie); }
+        .panel section:last-child { border-bottom: 0; }
+        .panel h3 {
+            margin: 0 0 12px;
+            font-size: 13px;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--akzent);
+        }
+        .feld { display: flex; flex-direction: column; gap: 6px; }
+        .feld + .feld, .chips + .feld, .unterlabel { margin-top: 14px; }
+        .feld > span, .unterlabel { display: block; font-size: 14px; color: var(--panel-gedimmt); }
+        .unterlabel { margin-bottom: 8px; }
+        .zeit-raster { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .zeit-raster .feld + .feld { margin-top: 0; }
+        .mit-knopf { display: flex; gap: 8px; }
+        .mit-knopf input { min-width: 0; }
+        .panel input[type=text],
+        .panel input[type=time],
+        .panel input[type=number],
+        .panel textarea {
+            width: 100%;
+            min-height: 48px;
+            padding: 10px 12px;
+            font: inherit;
+            color: inherit;
+            background: var(--panel-feld);
+            border: 1px solid var(--panel-linie);
+            border-radius: 10px;
+        }
+        .panel textarea { resize: vertical; line-height: 1.4; }
+        .panel input[type=range] { width: 100%; height: 32px; }
+        .panel :focus-visible { outline: 2px solid var(--akzent); outline-offset: 2px; }
+        .knopf {
+            min-height: 48px;
+            padding: 0 16px;
+            font: inherit;
+            color: inherit;
+            background: var(--panel-feld);
+            border: 1px solid var(--panel-linie);
+            border-radius: 10px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+        }
+        .knopf:hover { border-color: #4a4f5e; }
+        .knopf.primaer { background: var(--akzent); border-color: var(--akzent); color: #1d1206; font-weight: 600; }
+        .knopf.gefahr { background: transparent; color: var(--rot); }
+        .knopf.leise { background: transparent; border-color: transparent; color: var(--panel-gedimmt); padding: 0 4px; text-decoration: underline; }
+        .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+        .chips button {
+            min-height: 44px;
+            padding: 6px 14px;
+            font: inherit;
+            font-size: 15px;
+            text-align: left;
+            color: inherit;
+            background: transparent;
+            border: 1px solid var(--panel-linie);
+            border-radius: 22px;
+            cursor: pointer;
+        }
+        .chips button.an { background: rgba(242, 140, 40, 0.16); border-color: var(--akzent); color: #ffd3a8; }
+        #hinweisChips button::before { content: "+ "; color: var(--panel-gedimmt); }
+        #hinweisChips button.an::before { content: "✓ "; color: var(--akzent); }
+        .chips input[type=number] { width: 140px; min-height: 44px; }
+        .info { margin: 10px 0 0; font-size: 14px; color: var(--panel-gedimmt); }
+        .info:empty { display: none; }
+        .fehler { margin: 10px 0 0; font-size: 15px; color: var(--rot); }
+        .bg-raster { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+        .bg-raster button {
+            height: 72px;
+            font: inherit;
+            font-size: 14px;
+            color: var(--panel-gedimmt);
+            background: #000 center / cover no-repeat;
+            border: 2px solid var(--panel-linie);
+            border-radius: 10px;
+            cursor: pointer;
+        }
+        .bg-raster button.an { border-color: var(--akzent); box-shadow: 0 0 0 2px var(--akzent); }
+        .segment { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .segment button { justify-content: center; }
+        .segment button.an { border-color: var(--akzent); background: rgba(242, 140, 40, 0.16); color: #ffd3a8; }
+        .schalter { display: flex; align-items: center; gap: 12px; min-height: 44px; cursor: pointer; }
+        .schalter input { width: 22px; height: 22px; margin: 0; }
+        .klein { font-size: 14px; color: var(--panel-gedimmt); line-height: 1.45; margin: 0 0 12px; }
+        kbd {
+            padding: 1px 7px;
+            font: 13px var(--schrift);
+            background: var(--panel-feld);
+            border: 1px solid var(--panel-linie);
+            border-radius: 5px;
         }
     </style>
 </head>
+<body class="aktiv">
+    <div id="hintergrund"></div>
 
-<body>
-    <img class="hintergrund" src="img/klasse2.jpg" alt="Hintergrund">
-    <div class="container">
-        <h1 class="zeit" id="uhrzeit"></h1>
-        <div class="Zeiten">
-            <p contenteditable="true">Zeit von Anfang bis Ende :-)</p>
+    <main id="anzeige" class="anzeige">
+        <header class="kopf">
+            <div>
+                <div id="titel" class="titel"></div>
+                <div id="datum" class="datum"></div>
+            </div>
+            <img id="logo" class="logo" src="img/Logo%20THS.png" alt="Schullogo"
+                 onerror="this.dataset.fehlt = '1'; this.hidden = true;">
+        </header>
+        <div class="inhalt">
+            <section class="uhrbereich">
+                <div id="uhr" class="uhr">--:--</div>
+                <div id="zeitinfo" class="zeitinfo" hidden>
+                    <div id="zeitraum" class="zeitraum"></div>
+                    <div class="fortschritt"><div id="balken"></div></div>
+                    <div id="restzeit" class="restzeit"></div>
+                    <div id="ntaZeile" class="nta-zeile"></div>
+                </div>
+            </section>
+            <section id="hinweise" class="hinweise">
+                <h2>Hinweise</h2>
+                <ul id="hinweisliste"></ul>
+            </section>
         </div>
-        <div class="Hinweise">
-            <p contenteditable="true"><u>Hinweise:</u><br>
-                Hier kannst du deine Hinweise notieren, z.B.<br>
-                zugelassene Hilfsmittel: Tafelwerk usw.
-            </p>
-        </div>
+    </main>
+
+    <div class="steuerung">
+        <button id="btnVollbild" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path class="vollbild-icon" d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5"/></svg>
+            <span class="vollbild-text">Vollbild</span>
+        </button>
+        <button id="btnEinstellungen" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></svg>
+            Einstellungen
+        </button>
     </div>
-    <img class="Logo" src="img/Logo THS.png" alt="Logo">
+
+    <div id="abdeckung" class="abdeckung"></div>
+    <aside id="panel" class="panel" aria-label="Einstellungen">
+        <div class="panel-kopf">
+            <h2>Einstellungen</h2>
+            <button id="btnPanelVollbild" class="knopf" type="button" title="Vollbild ein/aus">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path class="vollbild-icon" d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5"/></svg>
+                <span class="vollbild-text">Vollbild</span>
+            </button>
+            <button id="btnFertig" class="knopf primaer" type="button">Fertig</button>
+        </div>
+        <div class="panel-inhalt">
+            <section>
+                <h3>Klausur</h3>
+                <label class="feld">
+                    <span>Titel (Fach, Kurs …) – optional</span>
+                    <input id="eTitel" type="text" maxlength="80" placeholder="z. B. Mathematik Q1 – 2. Klausur">
+                </label>
+            </section>
+
+            <section>
+                <h3>Bearbeitungszeit</h3>
+                <div class="zeit-raster">
+                    <div class="feld">
+                        <span><label for="eBeginn">Beginn</label></span>
+                        <div class="mit-knopf">
+                            <input id="eBeginn" type="time">
+                            <button id="btnJetzt" class="knopf" type="button" title="Beginn auf jetzt setzen – die Dauer bleibt gleich">Jetzt</button>
+                        </div>
+                    </div>
+                    <label class="feld">
+                        <span>Ende</span>
+                        <input id="eEnde" type="time">
+                    </label>
+                </div>
+                <div class="unterlabel">Dauer ab Beginn</div>
+                <div id="dauerChips" class="chips"></div>
+                <p id="dauerInfo" class="info"></p>
+                <p id="zeitFehler" class="fehler" hidden>Das Ende muss nach dem Beginn liegen.</p>
+
+                <div class="unterlabel">Nachteilsausgleich (Verlängerung der Bearbeitungszeit)</div>
+                <div id="ntaChips" class="chips">
+                    <input id="eNta" type="number" min="0" max="100" step="5" placeholder="eigener %" aria-label="Eigener Wert in Prozent">
+                </div>
+
+                <label class="feld">
+                    <span>Farbwechsel auf Gelb … Minuten vor Ende</span>
+                    <input id="eWarnung" type="number" min="0" max="120" step="1">
+                </label>
+                <p class="info"><button id="btnZeitLoeschen" class="knopf leise" type="button">Zeiten löschen</button></p>
+            </section>
+
+            <section>
+                <h3>Hinweise</h3>
+                <label class="feld">
+                    <span>Ein Hinweis pro Zeile</span>
+                    <textarea id="eHinweise" rows="6"></textarea>
+                </label>
+                <div class="unterlabel">Häufige Hinweise – antippen zum Hinzufügen oder Entfernen</div>
+                <div id="hinweisChips" class="chips"></div>
+            </section>
+
+            <section>
+                <h3>Anzeige</h3>
+                <div class="unterlabel">Hintergrund</div>
+                <div id="bgRaster" class="bg-raster"></div>
+                <div class="unterlabel">Anordnung</div>
+                <div id="layoutWahl" class="segment">
+                    <button class="knopf" type="button" data-layout="untereinander">Untereinander</button>
+                    <button class="knopf" type="button" data-layout="nebeneinander">Nebeneinander</button>
+                </div>
+                <label class="feld">
+                    <span>Maximale Schriftgröße der Hinweise</span>
+                    <input id="eGroesse" type="range" min="0.5" max="1.5" step="0.05">
+                </label>
+                <label class="schalter"><input id="eSekunden" type="checkbox"> Sekunden anzeigen</label>
+                <label class="schalter"><input id="eDatum" type="checkbox"> Datum anzeigen</label>
+                <label class="schalter"><input id="eLogo" type="checkbox"> Schullogo anzeigen</label>
+            </section>
+
+            <section>
+                <p class="klein">Alle Änderungen werden sofort übernommen und in diesem Browser gespeichert. Titel und Zeiten werden am nächsten Tag automatisch geleert, Hinweise und Anzeige bleiben erhalten.</p>
+                <p class="klein">Tastatur: <kbd>E</kbd> Einstellungen &nbsp;·&nbsp; <kbd>F</kbd> Vollbild &nbsp;·&nbsp; <kbd>Esc</kbd> schließen</p>
+                <button id="btnReset" class="knopf gefahr" type="button">Alles zurücksetzen</button>
+            </section>
+        </div>
+    </aside>
+
     <script>
-        function uhrzeitAnzeigen() {
-            const jetzt = new Date();
-            const stunden = jetzt.getHours();
-            const minutenzahl = jetzt.getMinutes();
-            const minuten = minutenzahl < 10 ? "0" + minutenzahl : minutenzahl;
-            const uhrzeit = `${stunden}:${minuten}`;
-            document.getElementById("uhrzeit").textContent = uhrzeit;
+        const SPEICHER_SCHLUESSEL = 'klausuruhr-einstellungen';
+        const HAEUFIGE_HINWEISE = [
+            'Handys und Smartwatches ausgeschaltet abgeben',
+            'Name auf jedes Blatt',
+            'Zugelassene Hilfsmittel: Tafelwerk, Taschenrechner, Zeichengeräte',
+            'Nicht mit Bleistift oder Rotstift schreiben',
+            'Rand für Korrekturen freilassen',
+            'Schmierzettel mit abgeben',
+            'Toilettengang nur einzeln und nach Abmeldung',
+            'Nach der Abgabe bitte leise den Raum verlassen'
+        ];
+        const STANDARD = {
+            titel: '',
+            beginn: '',
+            ende: '',
+            ntaProzent: 0,
+            warnung: 10,
+            hinweise: HAEUFIGE_HINWEISE.slice(0, 3).join('\n'),
+            hintergrund: 'img/klasse2.jpg',
+            layout: 'untereinander',
+            textgroesse: 1,
+            sekunden: false,
+            datum: true,
+            logo: true,
+            tag: ''
+        };
+        const HINTERGRUENDE = ['', 'img/klasse1.jpg', 'img/klasse2.jpg', 'img/klasse3.jpg', 'img/klasse4.jpg', 'img/klasse5.jpg'];
+        const DAUERN = [45, 90, 135, 180, 225, 270];
+        const NTA_PROZENT = [0, 10, 20, 30];
+
+        const $ = id => document.getElementById(id);
+        const pad = n => String(n).padStart(2, '0');
+
+        let zustand = laden();
+        let letzteSignatur = null;
+
+        // ---------- Speichern & Laden ----------
+
+        function heute() {
+            const d = new Date();
+            return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
         }
-    
-        uhrzeitAnzeigen(); // sofort beim Laden ausführen
-        setInterval(uhrzeitAnzeigen, 1000); // danach jede Sekunde aktualisieren
+
+        function laden() {
+            let gespeichert = null;
+            try { gespeichert = JSON.parse(localStorage.getItem(SPEICHER_SCHLUESSEL)); } catch (e) {}
+            const z = Object.assign({}, STANDARD, gespeichert || {});
+            // Titel und Zeiten gelten nur für den Tag, an dem sie eingestellt wurden
+            if (z.tag !== heute()) Object.assign(z, { titel: '', beginn: '', ende: '', ntaProzent: 0 });
+            return z;
+        }
+
+        function speichern() {
+            zustand.tag = heute();
+            try { localStorage.setItem(SPEICHER_SCHLUESSEL, JSON.stringify(zustand)); } catch (e) {}
+        }
+
+        function aendern(neu) {
+            Object.assign(zustand, neu);
+            speichern();
+            auswahlMarkieren();
+            anzeigeAufbauen();
+        }
+
+        // ---------- Hilfsfunktionen für Zeiten ----------
+
+        // "08:30" -> 510 Minuten seit Mitternacht, ungültig -> null
+        function inMinuten(hhmm) {
+            const m = /^(\d{1,2}):(\d{2})/.exec(hhmm || '');
+            return m ? Number(m[1]) * 60 + Number(m[2]) : null;
+        }
+
+        function alsUhrzeit(minuten) {
+            const m = Math.max(0, Math.min(23 * 60 + 59, Math.round(minuten)));
+            return `${pad(Math.floor(m / 60))}:${pad(m % 60)}`;
+        }
+
+        function uhrText(datum) {
+            return `${datum.getHours()}:${pad(datum.getMinutes())}`;
+        }
+
+        function zeitpunktHeute(jetzt, minuten) {
+            const d = new Date(jetzt);
+            d.setHours(Math.floor(minuten / 60), minuten % 60, 0, 0);
+            return d;
+        }
+
+        // Restzeiten werden aufgerundet: "noch 5 min" heißt höchstens 5 Minuten
+        function dauerText(ms) {
+            const sek = Math.ceil(ms / 1000);
+            if (sek < 60) return `${sek} s`;
+            const min = Math.ceil(sek / 60);
+            if (min < 60) return `${min} min`;
+            const h = Math.floor(min / 60), rest = min % 60;
+            return rest ? `${h} h ${rest} min` : `${h} h`;
+        }
+
+        // Zusätzliche Minuten durch den Nachteilsausgleich, zugunsten der Schüler:innen aufgerundet
+        function ntaMinuten(dauer) {
+            return zustand.ntaProzent > 0 ? Math.ceil(dauer * zustand.ntaProzent / 100) : 0;
+        }
+
+        function hinweisZeilen(text) {
+            return text.split('\n')
+                .map(z => z.replace(/^\s*[-•*]\s*/, '').trim())
+                .filter(z => z !== '');
+        }
+
+        function textSetzen(el, text) {
+            if (el.textContent !== text) el.textContent = text;
+        }
+
+        // ---------- Anzeige ----------
+
+        function anzeigeAufbauen() {
+            textSetzen($('titel'), zustand.titel);
+            document.title = zustand.titel ? `${zustand.titel} – Klausuruhr` : 'Klausuruhr';
+            $('datum').hidden = !zustand.datum;
+            $('logo').hidden = !zustand.logo || $('logo').dataset.fehlt === '1';
+            $('hintergrund').style.backgroundImage = zustand.hintergrund ? `url("${zustand.hintergrund}")` : 'none';
+            $('anzeige').classList.toggle('nebeneinander', zustand.layout === 'nebeneinander');
+
+            const zeilen = hinweisZeilen(zustand.hinweise);
+            const liste = $('hinweisliste');
+            liste.textContent = '';
+            zeilen.forEach(z => {
+                const li = document.createElement('li');
+                li.textContent = z;
+                liste.appendChild(li);
+            });
+            $('hinweise').hidden = zeilen.length === 0;
+
+            letzteSignatur = null; // erzwingt neues Einpassen der Hinweise
+            uhrAktualisieren();
+        }
+
+        function uhrAktualisieren() {
+            const jetzt = new Date();
+            let html = `${jetzt.getHours()}:${pad(jetzt.getMinutes())}`;
+            if (zustand.sekunden) html += `<span class="sek">:${pad(jetzt.getSeconds())}</span>`;
+            if ($('uhr').innerHTML !== html) $('uhr').innerHTML = html;
+            textSetzen($('datum'), jetzt.toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }));
+
+            // Nur wenn sich der Aufbau der Zeitanzeige ändert, müssen die Hinweise neu eingepasst werden
+            const signatur = zeitinfoAktualisieren(jetzt);
+            if (signatur !== letzteSignatur) {
+                letzteSignatur = signatur;
+                hinweiseEinpassen();
+            }
+        }
+
+        function zeitinfoAktualisieren(jetzt) {
+            const info = $('zeitinfo');
+            const b = inMinuten(zustand.beginn), e = inMinuten(zustand.ende);
+            if (b === null || e === null || e <= b) {
+                info.hidden = true;
+                return 'aus';
+            }
+
+            const beginn = zeitpunktHeute(jetzt, b);
+            const ende = zeitpunktHeute(jetzt, e);
+            const nta = ntaMinuten(e - b);
+            const endeNta = new Date(ende.getTime() + nta * 60000);
+            const warnMs = zustand.warnung * 60000;
+
+            let status, rest, anteil;
+            let ntaText = nta ? `Nachteilsausgleich (+${zustand.ntaProzent} %) bis ${uhrText(endeNta)} Uhr` : '';
+            if (jetzt < beginn) {
+                status = 'vor';
+                rest = `Beginn in ${dauerText(beginn - jetzt)}`;
+                anteil = 0;
+            } else if (jetzt < ende) {
+                status = ende - jetzt <= warnMs ? 'warn' : 'lauf';
+                rest = `noch ${dauerText(ende - jetzt)}`;
+                anteil = (jetzt - beginn) / (ende - beginn);
+            } else if (jetzt < endeNta) {
+                status = 'nta';
+                rest = `Nachteilsausgleich: noch ${dauerText(endeNta - jetzt)}`;
+                ntaText = 'Reguläre Bearbeitungszeit beendet';
+                anteil = 1;
+            } else {
+                status = 'ende';
+                rest = 'Bearbeitungszeit beendet';
+                anteil = 1;
+            }
+
+            info.hidden = false;
+            info.className = `zeitinfo ${status}`;
+            textSetzen($('zeitraum'), `Bearbeitungszeit ${uhrText(beginn)} – ${uhrText(ende)} Uhr`);
+            textSetzen($('restzeit'), rest);
+            textSetzen($('ntaZeile'), ntaText);
+            $('ntaZeile').hidden = !ntaText;
+            $('balken').style.width = `${(anteil * 100).toFixed(2)}%`;
+            return `${status}|${ntaText !== ''}`;
+        }
+
+        // Größte Schrift suchen, bei der alle Hinweise in den freien Platz passen
+        function hinweiseEinpassen() {
+            const karte = $('hinweise');
+            if (karte.hidden) return;
+            const nebeneinander = zustand.layout === 'nebeneinander';
+            const basis = Math.min(innerHeight * (nebeneinander ? 0.046 : 0.052), innerWidth * (nebeneinander ? 0.024 : 0.032));
+            const max = Math.max(14, basis * zustand.textgroesse);
+            const passt = () => karte.scrollHeight <= karte.clientHeight + 1 && karte.scrollWidth <= karte.clientWidth + 1;
+
+            karte.style.fontSize = `${max}px`;
+            if (passt()) return;
+            let klein = 10, gross = max;
+            for (let i = 0; i < 12; i++) {
+                const mitte = (klein + gross) / 2;
+                karte.style.fontSize = `${mitte}px`;
+                if (passt()) klein = mitte; else gross = mitte;
+            }
+            karte.style.fontSize = `${klein}px`;
+        }
+
+        function takt() {
+            uhrAktualisieren();
+            setTimeout(takt, 1000 - (Date.now() % 1000) + 10);
+        }
+
+        // ---------- Einstellungen ----------
+
+        const panel = $('panel');
+
+        function panelOffen() {
+            return panel.classList.contains('offen');
+        }
+
+        function panelOeffnen() {
+            formularFuellen();
+            panel.classList.add('offen');
+            $('abdeckung').classList.add('offen');
+            document.body.classList.add('panel-offen');
+            aktiv();
+        }
+
+        function panelSchliessen() {
+            panel.classList.remove('offen');
+            $('abdeckung').classList.remove('offen');
+            document.body.classList.remove('panel-offen');
+            if (document.activeElement) document.activeElement.blur();
+            aktiv();
+        }
+
+        function formularFuellen() {
+            $('eTitel').value = zustand.titel;
+            $('eBeginn').value = zustand.beginn;
+            $('eEnde').value = zustand.ende;
+            $('eNta').value = NTA_PROZENT.indexOf(zustand.ntaProzent) === -1 ? zustand.ntaProzent : '';
+            $('eWarnung').value = zustand.warnung;
+            $('eHinweise').value = zustand.hinweise;
+            $('eGroesse').value = zustand.textgroesse;
+            $('eSekunden').checked = zustand.sekunden;
+            $('eDatum').checked = zustand.datum;
+            $('eLogo').checked = zustand.logo;
+            auswahlMarkieren();
+        }
+
+        // Hebt hervor, welche Schnellauswahl-Knöpfe gerade zutreffen
+        function auswahlMarkieren() {
+            const b = inMinuten(zustand.beginn), e = inMinuten(zustand.ende);
+            const dauer = b !== null && e !== null ? e - b : null;
+            const zeilen = hinweisZeilen(zustand.hinweise);
+            const markieren = (auswahl, istAn) => document.querySelectorAll(auswahl).forEach(k => k.classList.toggle('an', istAn(k)));
+
+            markieren('#dauerChips button', k => Number(k.dataset.min) === dauer);
+            markieren('#ntaChips button', k => Number(k.dataset.prozent) === zustand.ntaProzent);
+            markieren('#hinweisChips button', k => zeilen.indexOf(k.dataset.text) !== -1);
+            markieren('#bgRaster button', k => k.dataset.bg === zustand.hintergrund);
+            markieren('#layoutWahl button', k => k.dataset.layout === zustand.layout);
+
+            $('zeitFehler').hidden = !(dauer !== null && dauer <= 0);
+            $('dauerInfo').textContent = dauer > 0
+                ? `Dauer: ${dauer} min` + (zustand.ntaProzent > 0
+                    ? `, mit Nachteilsausgleich (+${zustand.ntaProzent} %) ${dauer + ntaMinuten(dauer)} min`
+                    : '')
+                : '';
+        }
+
+        function knopf(text, daten, eltern) {
+            const k = document.createElement('button');
+            k.type = 'button';
+            k.textContent = text;
+            Object.assign(k.dataset, daten);
+            eltern.appendChild(k);
+            return k;
+        }
+
+        function formularAufbauen() {
+            DAUERN.forEach(min => knopf(`${min} min`, { min }, $('dauerChips')).addEventListener('click', () => {
+                const b = inMinuten(zustand.beginn);
+                const jetzt = new Date();
+                const start = b !== null ? b : jetzt.getHours() * 60 + jetzt.getMinutes();
+                aendern({ beginn: alsUhrzeit(start), ende: alsUhrzeit(start + min) });
+                formularFuellen();
+            }));
+
+            const ntaFeld = $('eNta');
+            NTA_PROZENT.forEach(prozent => {
+                const k = knopf(prozent ? `+${prozent} %` : 'keiner', { prozent }, $('ntaChips'));
+                $('ntaChips').insertBefore(k, ntaFeld);
+                k.addEventListener('click', () => { aendern({ ntaProzent: prozent }); formularFuellen(); });
+            });
+
+            HAEUFIGE_HINWEISE.forEach(text => knopf(text, { text }, $('hinweisChips')).addEventListener('click', () => {
+                const zeilen = hinweisZeilen(zustand.hinweise);
+                const pos = zeilen.indexOf(text);
+                if (pos === -1) zeilen.push(text); else zeilen.splice(pos, 1);
+                aendern({ hinweise: zeilen.join('\n') });
+                $('eHinweise').value = zustand.hinweise;
+            }));
+
+            HINTERGRUENDE.forEach((bild, i) => {
+                const k = knopf(bild ? '' : 'Schwarz', { bg: bild }, $('bgRaster'));
+                if (bild) {
+                    k.style.backgroundImage = `url("${bild}")`;
+                    k.setAttribute('aria-label', `Hintergrund ${i}`);
+                }
+                k.addEventListener('click', () => aendern({ hintergrund: bild }));
+            });
+
+            document.querySelectorAll('#layoutWahl button').forEach(k =>
+                k.addEventListener('click', () => aendern({ layout: k.dataset.layout })));
+
+            const zahl = (wert, ersatz) => {
+                const n = parseInt(wert, 10);
+                return isNaN(n) || n < 0 ? ersatz : n;
+            };
+            $('eTitel').addEventListener('input', e => aendern({ titel: e.target.value }));
+            $('eBeginn').addEventListener('input', e => aendern({ beginn: e.target.value }));
+            $('eEnde').addEventListener('input', e => aendern({ ende: e.target.value }));
+            $('eNta').addEventListener('input', e => aendern({ ntaProzent: zahl(e.target.value, 0) }));
+            $('eWarnung').addEventListener('input', e => aendern({ warnung: zahl(e.target.value, 0) }));
+            $('eHinweise').addEventListener('input', e => aendern({ hinweise: e.target.value }));
+            $('eGroesse').addEventListener('input', e => aendern({ textgroesse: Number(e.target.value) }));
+            $('eSekunden').addEventListener('change', e => aendern({ sekunden: e.target.checked }));
+            $('eDatum').addEventListener('change', e => aendern({ datum: e.target.checked }));
+            $('eLogo').addEventListener('change', e => aendern({ logo: e.target.checked }));
+
+            // Verschiebt den Beginn auf jetzt und behält eine bereits eingestellte Dauer bei
+            $('btnJetzt').addEventListener('click', () => {
+                const jetzt = new Date();
+                const start = jetzt.getHours() * 60 + jetzt.getMinutes();
+                const b = inMinuten(zustand.beginn), e = inMinuten(zustand.ende);
+                const neu = { beginn: alsUhrzeit(start) };
+                if (b !== null && e !== null && e > b) neu.ende = alsUhrzeit(start + e - b);
+                aendern(neu);
+                formularFuellen();
+            });
+            $('btnZeitLoeschen').addEventListener('click', () => {
+                aendern({ beginn: '', ende: '', ntaProzent: 0 });
+                formularFuellen();
+            });
+            $('btnReset').addEventListener('click', () => {
+                if (!confirm('Alle Einstellungen auf den Ausgangszustand zurücksetzen?')) return;
+                zustand = Object.assign({}, STANDARD);
+                speichern();
+                formularFuellen();
+                anzeigeAufbauen();
+            });
+
+            $('btnEinstellungen').addEventListener('click', panelOeffnen);
+            $('btnFertig').addEventListener('click', panelSchliessen);
+            $('abdeckung').addEventListener('click', panelSchliessen);
+        }
+
+        // ---------- Vollbild, Bildschirm wach halten, Bedienleiste ----------
+
+        function vollbildUmschalten() {
+            if (document.fullscreenElement) {
+                document.exitFullscreen();
+            } else if (document.documentElement.requestFullscreen) {
+                document.documentElement.requestFullscreen().catch(() => {});
+            }
+        }
+
+        function vollbildKnoepfeAktualisieren() {
+            const an = !!document.fullscreenElement;
+            document.querySelectorAll('.vollbild-text').forEach(el => { el.textContent = an ? 'Vollbild beenden' : 'Vollbild'; });
+            document.querySelectorAll('.vollbild-icon').forEach(el => el.setAttribute('d', an
+                ? 'M9 4v5H4M20 9h-5V4M15 20v-5h5M4 15h5v5'
+                : 'M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5'));
+        }
+
+        // Verhindert, dass sich das Smartboard während der Klausur in den Ruhezustand schaltet
+        let wachSperre = null;
+        async function wachHalten() {
+            if (!('wakeLock' in navigator) || document.visibilityState !== 'visible' || wachSperre) return;
+            try {
+                wachSperre = await navigator.wakeLock.request('screen');
+                wachSperre.addEventListener('release', () => { wachSperre = null; });
+            } catch (e) {}
+        }
+
+        // Bedienleiste und Mauszeiger nach 4 Sekunden ohne Eingabe ausblenden
+        let ruheTimer = null;
+        function aktiv() {
+            document.body.classList.add('aktiv');
+            clearTimeout(ruheTimer);
+            ruheTimer = setTimeout(() => {
+                if (!panelOffen()) document.body.classList.remove('aktiv');
+            }, 4000);
+        }
+
+        // ---------- Start ----------
+
+        formularAufbauen();
+        anzeigeAufbauen();
+        takt();
+        aktiv();
+        wachHalten();
+
+        if (!document.fullscreenEnabled) {
+            $('btnVollbild').hidden = true;
+            $('btnPanelVollbild').hidden = true;
+        }
+        $('btnVollbild').addEventListener('click', vollbildUmschalten);
+        $('btnPanelVollbild').addEventListener('click', vollbildUmschalten);
+        document.addEventListener('fullscreenchange', () => {
+            vollbildKnoepfeAktualisieren();
+            requestAnimationFrame(hinweiseEinpassen);
+        });
+
+        ['pointermove', 'pointerdown', 'keydown'].forEach(ereignis =>
+            document.addEventListener(ereignis, aktiv, { passive: true }));
+        document.addEventListener('pointerdown', wachHalten);
+        document.addEventListener('visibilitychange', wachHalten);
+        window.addEventListener('resize', () => requestAnimationFrame(hinweiseEinpassen));
+        if (document.fonts) document.fonts.ready.then(hinweiseEinpassen);
+
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Escape' && panelOffen()) {
+                panelSchliessen();
+                return;
+            }
+            if (e.ctrlKey || e.altKey || e.metaKey || e.target.closest('input, textarea')) return;
+            const taste = e.key.toLowerCase();
+            if (taste === 'e') {
+                if (panelOffen()) panelSchliessen(); else panelOeffnen();
+            } else if (taste === 'f') {
+                vollbildUmschalten();
+            }
+        });
+
+        // Ohne eingestellte Zeiten direkt die Einstellungen zeigen
+        if (!zustand.beginn || !zustand.ende) panelOeffnen();
     </script>
 </body>
 </html>
-
-
-
-
-
-
