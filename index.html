@@ -201,6 +201,19 @@
             cursor: pointer;
         }
         .steuerung button:hover { background: rgba(40, 43, 52, 0.9); }
+        .steuerung a {
+            display: flex;
+            align-items: center;
+            min-height: 56px;
+            padding: 0 18px;
+            font: 400 16px var(--schrift);
+            color: rgba(255, 255, 255, 0.85);
+            text-decoration: none;
+            background: rgba(20, 22, 28, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 999px;
+        }
+        .steuerung a:hover { color: #fff; }
         .steuerung svg, .panel-kopf svg { width: 24px; height: 24px; flex: none; }
 
         /* ---------- Einstellungen ---------- */
@@ -332,6 +345,7 @@
         .schalter { display: flex; align-items: center; gap: 12px; min-height: 44px; cursor: pointer; }
         .schalter input { width: 22px; height: 22px; margin: 0; }
         .klein { font-size: 14px; color: var(--panel-gedimmt); line-height: 1.45; margin: 0 0 12px; }
+        .klein a { color: #ffb36b; }
         kbd {
             padding: 1px 7px;
             font: 13px var(--schrift);
@@ -372,6 +386,7 @@
     </main>
 
     <div class="steuerung">
+        <a href="impressum.html" target="_blank" rel="noopener">Impressum &amp; Datenschutz</a>
         <button id="btnVollbild" type="button">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path class="vollbild-icon" d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5"/></svg>
             <span class="vollbild-text">Vollbild</span>
@@ -465,6 +480,7 @@
             <section>
                 <p class="klein">Alle Änderungen werden sofort übernommen und in diesem Browser gespeichert. Titel und Zeiten werden am nächsten Tag automatisch geleert, Hinweise und Anzeige bleiben erhalten.</p>
                 <p class="klein">Tastatur: <kbd>E</kbd> Einstellungen &nbsp;·&nbsp; <kbd>F</kbd> Vollbild &nbsp;·&nbsp; <kbd>Esc</kbd> schließen</p>
+                <p class="klein"><a href="impressum.html" target="_blank" rel="noopener">Impressum &amp; Datenschutz</a></p>
                 <button id="btnReset" class="knopf gefahr" type="button">Alles zurücksetzen</button>
             </section>
         </div>
