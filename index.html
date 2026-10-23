@@ -162,17 +162,6 @@
         .anzeige.nebeneinander .nta-zeile { font-size: min(3.2vh, 1.8vw); }
         .anzeige.nebeneinander .hinweise { flex: 1 1 0; min-width: 0; max-width: none; max-height: 100%; }
 
-        /* Kennzeichnung der KI-generierten Hintergrundbilder, unten links im unteren Rand */
-        .ki-hinweis {
-            flex: none;
-            margin: 0.8vh 0 -1.6vh;
-            line-height: 1.2;
-            font-size: clamp(10px, 1.3vh, 16px);
-            color: rgba(255, 255, 255, 0.5);
-            text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
-            pointer-events: none;
-        }
-
         /* ---------- Bedienleiste (blendet sich nach kurzer Zeit aus) ---------- */
         .steuerung {
             position: fixed;
@@ -368,7 +357,6 @@
                 <ul id="hinweisliste"></ul>
             </section>
         </div>
-        <div id="kiHinweis" class="ki-hinweis">Hintergrundbild KI-generiert</div>
     </main>
 
     <div class="steuerung">
@@ -446,9 +434,7 @@
             <section>
                 <h3>Anzeige</h3>
                 <div class="unterlabel">Hintergrund</div>
-                <div id="bgRaster" class="bg-raster"></div>
-                <p class="info">Alle Hintergrundbilder sind KI-generiert und werden auf der Anzeige unten links so gekennzeichnet.</p>
-                <div class="unterlabel">Anordnung</div>
+                <div id="bgRaster" class="bg-raster"></div>                <div class="unterlabel">Anordnung</div>
                 <div id="layoutWahl" class="segment">
                     <button class="knopf" type="button" data-layout="untereinander">Untereinander</button>
                     <button class="knopf" type="button" data-layout="nebeneinander">Nebeneinander</button>
@@ -606,9 +592,7 @@
             $('logo').hidden = !zustand.logo || $('logo').dataset.fehlt === '1';
             const hintergrund = hintergrundEintrag(zustand.hintergrund) || HINTERGRUENDE[0];
             $('hintergrund').style.backgroundImage = hintergrund.bild ? `url("${hintergrund.bild}")` : 'none';
-            $('hintergrund').style.filter = `brightness(${hintergrund.helligkeit})`;
-            $('kiHinweis').hidden = !hintergrund.bild;
-            $('anzeige').classList.toggle('nebeneinander', zustand.layout === 'nebeneinander');
+            $('hintergrund').style.filter = `brightness(${hintergrund.helligkeit})`;            $('anzeige').classList.toggle('nebeneinander', zustand.layout === 'nebeneinander');
 
             const zeilen = hinweisZeilen(zustand.hinweise);
             const liste = $('hinweisliste');
