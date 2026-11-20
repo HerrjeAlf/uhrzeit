@@ -30,7 +30,7 @@ Alle Änderungen gelten sofort. Die Einstellungen öffnet man wieder, indem man 
 Für Störungen während der Klausur, z. B. einen Feueralarm, gibt es zwei Möglichkeiten:
 
 - **Zeit anhalten**: Der Knopf erscheint in der Bedienleiste, sobald die Bearbeitungszeit läuft. Er ist auch in den Einstellungen unter **Unterbrechung** zu finden, oder man drückt die Taste <kbd>P</kbd>. Die Restzeit bleibt stehen, und die Anzeige meldet in Blau „Unterbrochen“. Mit **Zeit fortsetzen** läuft sie weiter. Die Dauer der Unterbrechung wird, auf volle Minuten aufgerundet, ans Ende angehängt. Ein versehentliches Anhalten unter 10 Sekunden verlängert nichts.
-- **Zeit verlängern**: In den Einstellungen unter **Unterbrechung** die Zeit um +1, +5, +10 oder +15 Minuten verlängern. Die Verlängerung erscheint auf der Anzeige als „(+10 min)“ hinter der Bearbeitungszeit. Darin sind auch die Minuten aus beendeten Unterbrechungen enthalten. Mit **zurücknehmen** wird die gesamte Verlängerung wieder entfernt. Während die Zeit angehalten ist, geht das nicht.
+- **Zeit verlängern**: In den Einstellungen unter **Unterbrechung** die Zeit um +1, +5, +10 oder +15 Minuten verlängern. Die Anzeige nennt dann die neue Endzeit und darunter z. B. „Wegen Unterbrechung um 10 min verlängert – ursprünglich bis 9:30 Uhr“. Darin sind auch die Minuten aus beendeten Pausen enthalten. Mit **zurücknehmen** wird die gesamte Verlängerung wieder entfernt. Während die Zeit angehalten ist, geht das nicht.
 
 Beides gilt für die reguläre Bearbeitungszeit und den Nachteilsausgleich gleichermaßen. Ist die reguläre Zeit schon abgelaufen und schreiben nur noch Schüler:innen mit Nachteilsausgleich, verlängert sich nur deren Zeit.
 

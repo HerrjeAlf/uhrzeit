@@ -89,6 +89,8 @@
 
         .zeitinfo { width: min(68vw, 120vh); margin-top: 2.5vh; }
         .zeitraum { font-size: min(4.4vh, 2.7vw); color: var(--text-gedimmt); }
+        .verlaengert { font-size: min(3vh, 1.9vw); color: var(--text-gedimmt); margin-top: 0.4vh; }
+        .verlaengert span { white-space: nowrap; } /* bricht, wenn nötig, nur zwischen den beiden Teilen um */
         .fortschritt {
             height: min(1.4vh, 12px);
             margin: 1.8vh 0 1.4vh;
@@ -163,6 +165,7 @@
         .anzeige.nebeneinander .uhr { font-size: min(22vh, 11vw); }
         .anzeige.nebeneinander .zeitinfo { width: 100%; }
         .anzeige.nebeneinander .zeitraum { font-size: min(4vh, 2.2vw); }
+        .anzeige.nebeneinander .verlaengert { font-size: min(2.8vh, 1.6vw); }
         .anzeige.nebeneinander .restzeit { font-size: min(5.6vh, 3vw); }
         .anzeige.nebeneinander .nta-zeile { font-size: min(3.2vh, 1.8vw); }
         .anzeige.nebeneinander .hinweise { flex: 1 1 0; min-width: 0; max-width: none; max-height: 100%; }
@@ -383,6 +386,7 @@
                 <div id="uhr" class="uhr">--:--</div>
                 <div id="zeitinfo" class="zeitinfo" hidden>
                     <div id="zeitraum" class="zeitraum"></div>
+                    <div id="verlaengert" class="verlaengert" hidden><span id="verlaengertGrund"></span> <span id="verlaengertUrspruenglich"></span></div>
                     <div class="fortschritt"><div id="balken"></div></div>
                     <div id="restzeit" class="restzeit"></div>
                     <div id="ntaZeile" class="nta-zeile"></div>
@@ -774,15 +778,21 @@
                 anteil = 1;
             }
 
-            const plusText = zustand.plusMin > 0 ? ` (+${zustand.plusMin} min)` : '';
+            // Die gültige Endzeit steht vorn; darunter, wie sie zustande kommt
+            const verlaengert = zustand.plusMin > 0;
             info.hidden = false;
             info.className = `zeitinfo ${klasse}`;
-            textSetzen($('zeitraum'), `Bearbeitungszeit ${uhrText(beginn)} – ${uhrText(plan.vorPause.ende)} Uhr${plusText}`);
+            textSetzen($('zeitraum'), `Bearbeitungszeit ${uhrText(beginn)} – ${uhrText(plan.vorPause.ende)} Uhr`);
+            textSetzen($('verlaengertGrund'), verlaengert ? `Wegen Unterbrechung um ${zustand.plusMin} min verlängert –` : '');
+            textSetzen($('verlaengertUrspruenglich'), verlaengert
+                ? `ursprünglich bis ${uhrText(plan.vorPause.ende - zustand.plusMin * 60000)} Uhr`
+                : '');
+            $('verlaengert').hidden = !verlaengert;
             textSetzen($('restzeit'), rest);
             textSetzen($('ntaZeile'), zeile);
             $('ntaZeile').hidden = !zeile;
             $('balken').style.width = `${(Math.min(1, anteil) * 100).toFixed(2)}%`;
-            return `${klasse}|${zeile !== ''}`;
+            return `${klasse}|${zeile !== ''}|${verlaengert}`;
         }
 
         // ---------- Unterbrechung: anhalten, fortsetzen, verlängern ----------
