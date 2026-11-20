@@ -49,31 +49,6 @@ Wer einen neuen Beginn einträgt, startet eine neue Klausur. Verlängerungen und
 
 Die Klausuruhr setzt keine Cookies, nutzt kein Tracking und lädt nichts von fremden Servern. Die Einstellungen liegen nur im Browser des jeweiligen Geräts (`localStorage`). Titel, Zeiten, Verlängerungen und Unterbrechungen werden am nächsten Tag automatisch gelöscht. Hinweise und Anzeigeoptionen bleiben erhalten. Einzelheiten stehen in [Impressum und Datenschutz](impressum.html).
 
-## Technik
-
-Die ganze Anwendung steckt in einer Datei, [index.html](index.html), mit HTML, CSS und JavaScript. Es gibt keine Abhängigkeiten und keinen Build-Schritt. Veröffentlicht wird die Seite über GitHub Pages, Änderungen am Branch `main` sind nach kurzer Zeit online.
-
-```
-index.html       Klausuruhr
-impressum.html   Impressum und Datenschutz
-img/             Hintergrundbilder und Schullogo
-```
-
-### Lokal ausprobieren
-
-Am einfachsten öffnet man `index.html` direkt im Browser. Alternativ startet man einen kleinen Webserver:
-
-```sh
-python3 -m http.server 8000
-# dann http://localhost:8000 öffnen
-```
-
-### Hintergrundbild hinzufügen
-
-1. Das Bild in `img/` ablegen, am besten im Format 16:9 und mindestens 1920 px breit.
-2. In `index.html` einen Eintrag in der Liste `HINTERGRUENDE` ergänzen. Der Wert `helligkeit` bestimmt, wie stark das Bild abgedunkelt wird (0 = schwarz, 1 = unverändert), damit die Schrift gut lesbar bleibt.
-3. Jedes Hintergrundbild wird unten links als „KI-generiert“ gekennzeichnet, weil das bisher auf alle Bilder zutrifft. Für ein Foto oder eine Grafik aus anderer Quelle muss diese Kennzeichnung angepasst werden (in `anzeigeAufbauen()`), und die Quelle gehört ins [Impressum](impressum.html) unter „Bildnachweis“.
-
-### Mitarbeit mit Claude
+## Mitarbeit mit Claude
 
 Wer in einem Issue oder Pull Request `@claude` erwähnt, startet einen Claude-Code-Agenten, der Fragen beantwortet oder Änderungen vorschlägt. Eingerichtet ist das in [.github/workflows/claude.yml](.github/workflows/claude.yml).
