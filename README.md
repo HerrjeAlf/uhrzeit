@@ -14,11 +14,11 @@ Sie läuft direkt im Browser, ohne Anmeldung und ohne Installation.
 - **Unterbrechungen**: Die Zeit lässt sich im Notfall anhalten oder nach einer Störung um einige Minuten verlängern (siehe unten).
 - **Hinweise** zur Klausur, z. B. zu den Hilfsmitteln. Häufige Hinweise lassen sich per Klick hinzufügen. Die Schriftgröße passt sich automatisch an den freien Platz an.
 - **Anzeige**: Hintergrundbilder zur Auswahl, Hinweise unter oder neben der Uhr, Schullogo ein- und ausblendbar
-- **Für den Unterricht gemacht**: Vollbild per Knopfdruck. Bedienleiste und Mauszeiger verschwinden nach 4 Sekunden, und der Bildschirm geht während der Klausur nicht in den Ruhezustand.
+- **Für den Unterricht gemacht**: Vollbild per Knopfdruck. Bedienleiste und Mauszeiger verschwinden nach 4 Sekunden, und der Bildschirm geht nicht in den Ruhezustand, sofern der Browser das unterstützt (aktuelle Versionen von Chrome, Edge, Safari und Firefox).
 
 ## Bedienung
 
-1. Klausuruhr öffnen. Beim ersten Aufruf des Tages öffnen sich die Einstellungen von selbst.
+1. Klausuruhr öffnen. Solange keine Bearbeitungszeit eingestellt ist, öffnen sich die Einstellungen von selbst.
 2. Unter **Bearbeitungszeit** den Beginn eintragen (oder **Jetzt** antippen) und eine Dauer wählen, z. B. **90 min**. Alternativ das Ende direkt eintragen.
 3. Bei Bedarf den Nachteilsausgleich wählen und die Hinweise anpassen.
 4. **Fertig** antippen und **Vollbild** einschalten.
@@ -30,7 +30,7 @@ Alle Änderungen gelten sofort. Die Einstellungen öffnet man wieder, indem man 
 Für Störungen während der Klausur, z. B. einen Feueralarm, gibt es zwei Möglichkeiten:
 
 - **Zeit anhalten**: Der Knopf erscheint in der Bedienleiste, sobald die Bearbeitungszeit läuft. Er ist auch in den Einstellungen unter **Unterbrechung** zu finden, oder man drückt die Taste <kbd>P</kbd>. Die Restzeit bleibt stehen, und die Anzeige meldet in Blau „Unterbrochen“. Mit **Zeit fortsetzen** läuft sie weiter. Die Dauer der Unterbrechung wird, auf volle Minuten aufgerundet, ans Ende angehängt. Ein versehentliches Anhalten unter 10 Sekunden verlängert nichts.
-- **Zeit verlängern**: In den Einstellungen unter **Unterbrechung** die Zeit um +1, +5, +10 oder +15 Minuten verlängern. Die Verlängerung erscheint auf der Anzeige als „(+10 min)“ hinter der Bearbeitungszeit. Mit **zurücknehmen** wird sie wieder entfernt.
+- **Zeit verlängern**: In den Einstellungen unter **Unterbrechung** die Zeit um +1, +5, +10 oder +15 Minuten verlängern. Die Verlängerung erscheint auf der Anzeige als „(+10 min)“ hinter der Bearbeitungszeit. Darin sind auch die Minuten aus beendeten Unterbrechungen enthalten. Mit **zurücknehmen** wird die gesamte Verlängerung wieder entfernt. Während die Zeit angehalten ist, geht das nicht.
 
 Beides gilt für die reguläre Bearbeitungszeit und den Nachteilsausgleich gleichermaßen. Ist die reguläre Zeit schon abgelaufen und schreiben nur noch Schüler:innen mit Nachteilsausgleich, verlängert sich nur deren Zeit.
 

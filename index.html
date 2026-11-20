@@ -312,7 +312,7 @@
         .knopf:hover { border-color: #4a4f5e; }
         .knopf:disabled { opacity: 0.45; cursor: default; }
         .knopf.breit { width: 100%; justify-content: center; }
-        .knopf svg { width: 20px; height: 20px; flex: none; }
+        #btnPause svg { width: 20px; height: 20px; flex: none; }
         .knopf.pausiert { background: var(--blau); border-color: var(--blau); color: #06121d; font-weight: 600; }
         .chips button:disabled { opacity: 0.45; cursor: default; }
         .knopf.primaer { background: var(--akzent); border-color: var(--akzent); color: #1d1206; font-weight: 600; }
@@ -556,6 +556,8 @@
             { bild: 'img/buecherregal.jpg', name: 'Bücherregal', helligkeit: 0.42 }
         ];
         const OHNE_UNTERBRECHUNG = { plusMin: 0, plusNtaMin: 0, pause: null };
+        // Diese Werte gelten nur für den Tag, an dem sie eingestellt wurden
+        const TAGESWERTE = Object.assign({ titel: '', beginn: '', ende: '', ntaProzent: 0 }, OHNE_UNTERBRECHUNG);
         const DAUERN = [45, 90, 135, 180, 225, 270];
         const NTA_PROZENT = [0, 10, 20, 30];
         const PLUS_MINUTEN = [1, 5, 10, 15];
@@ -581,8 +583,7 @@
             let gespeichert = null;
             try { gespeichert = JSON.parse(localStorage.getItem(SPEICHER_SCHLUESSEL)); } catch (e) {}
             const z = Object.assign({}, STANDARD, gespeichert || {});
-            // Titel und Zeiten gelten nur für den Tag, an dem sie eingestellt wurden
-            if (z.tag !== heute()) Object.assign(z, { titel: '', beginn: '', ende: '', ntaProzent: 0 }, OHNE_UNTERBRECHUNG);
+            if (z.tag !== heute()) Object.assign(z, TAGESWERTE, { tag: heute() });
             if (typeof z.pause !== 'number') z.pause = null;
             // Gespeicherte Bilder, die es nicht mehr gibt, durch den Standard ersetzen
             if (!hintergrundEintrag(z.hintergrund)) z.hintergrund = STANDARD.hintergrund;
@@ -710,7 +711,8 @@
             vorPause.endeNta = zustand.ntaProzent > 0
                 ? endePlan + (ntaMinuten(e - b) + zustand.plusNtaMin) * 60000
                 : vorPause.ende;
-            const pause = zustand.pause;
+            // Eine Unterbrechung nach dem letzten Ende (z. B. weil das Ende danach vorverlegt wurde) zählt nicht
+            const pause = zustand.pause !== null && zustand.pause < vorPause.endeNta ? zustand.pause : null;
             const laufend = pause !== null ? Math.max(0, jetzt.getTime() - pause) : 0;
             const verschoben = ende => pause !== null && pause < ende ? ende + laufend : ende;
             return {
@@ -725,7 +727,7 @@
         // 'vor' | 'lauf' | 'pause' | 'nta' | 'ende'
         function phase(plan, t) {
             if (t < plan.beginn) return 'vor';
-            if (plan.pause !== null && plan.pause < plan.vorPause.endeNta) return 'pause';
+            if (plan.pause !== null) return 'pause';
             if (t < plan.ende) return 'lauf';
             if (t < plan.endeNta) return 'nta';
             return 'ende';
@@ -849,9 +851,15 @@
 
             const { plusMin, plusNtaMin } = zustand;
             $('plusZeile').hidden = !(plusMin || plusNtaMin);
-            textSetzen($('plusInfo'), zustand.ntaProzent > 0 && plusNtaMin !== plusMin
-                ? `Bisher verlängert: ${plusMin} min, mit Nachteilsausgleich ${plusNtaMin} min.`
-                : `Bisher verlängert um ${Math.max(plusMin, plusNtaMin)} min.`);
+            // Während einer Unterbrechung nicht zurücknehmen, sonst läge sie womöglich nach dem Ende
+            $('btnPlusLoeschen').disabled = pausiert;
+            let plusText = `Bisher verlängert um ${Math.max(plusMin, plusNtaMin)} min.`;
+            if (zustand.ntaProzent > 0 && plusNtaMin !== plusMin) {
+                plusText = plusMin > 0
+                    ? `Bisher verlängert um ${plusMin} min, mit Nachteilsausgleich um ${plusNtaMin} min.`
+                    : `Bisher nur der Nachteilsausgleich verlängert, um ${plusNtaMin} min.`;
+            }
+            textSetzen($('plusInfo'), plusText);
         }
 
         // Größte Schrift suchen, bei der alle Hinweise in den freien Platz passen
@@ -875,7 +883,14 @@
         }
 
         function takt() {
-            uhrAktualisieren();
+            if (zustand.tag !== heute()) {
+                // Die Anzeige lief über Mitternacht weiter (der Bildschirm wird ja wach gehalten):
+                // Klausur vom Vortag ausblenden, statt sie morgens erneut anzukündigen
+                aendern(TAGESWERTE);
+                if (panelOffen()) formularFuellen();
+            } else {
+                uhrAktualisieren();
+            }
             setTimeout(takt, 1000 - (Date.now() % 1000) + 10);
         }
 
