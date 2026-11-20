@@ -625,9 +625,10 @@
             return `${pad(Math.floor(m / 60))}:${pad(m % 60)}`;
         }
 
+        // Uhrzeit nach DIN 5008: Stunden und Minuten zweistellig, z. B. 08:05 oder 00:02
         function uhrText(zeit) {
             const datum = new Date(zeit);
-            return `${datum.getHours()}:${pad(datum.getMinutes())}`;
+            return `${pad(datum.getHours())}:${pad(datum.getMinutes())}`;
         }
 
         function zeitpunktHeute(jetzt, minuten) {
