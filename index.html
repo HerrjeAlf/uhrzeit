@@ -14,6 +14,7 @@
             --gruen: #4ade80;
             --gelb: #fbbf24;
             --rot: #f87171;
+            --blau: #7cc4ff;
             --akzent: #f28c28;
             --panel: #15171c;
             --panel-feld: #23262e;
@@ -111,6 +112,10 @@
         .zeitinfo.nta .fortschritt > div { background: var(--gelb); }
         .zeitinfo.ende .restzeit { color: var(--rot); }
         .zeitinfo.ende .fortschritt > div { background: var(--rot); }
+        .zeitinfo.pause .restzeit { color: var(--blau); animation: pulsieren 2.4s ease-in-out infinite; }
+        .zeitinfo.pause .fortschritt > div { background: var(--blau); }
+        @keyframes pulsieren { 50% { opacity: 0.55; } }
+        @media (prefers-reduced-motion: reduce) { .zeitinfo.pause .restzeit { animation: none; } }
 
         .hinweise {
             flex: 0 1 auto;
@@ -201,6 +206,7 @@
             cursor: pointer;
         }
         .steuerung button:hover { background: rgba(40, 43, 52, 0.9); }
+        .steuerung button.pausiert { background: var(--blau); border-color: var(--blau); color: #06121d; }
         .steuerung a {
             display: flex;
             align-items: center;
@@ -304,6 +310,11 @@
             white-space: nowrap;
         }
         .knopf:hover { border-color: #4a4f5e; }
+        .knopf:disabled { opacity: 0.45; cursor: default; }
+        .knopf.breit { width: 100%; justify-content: center; }
+        .knopf svg { width: 20px; height: 20px; flex: none; }
+        .knopf.pausiert { background: var(--blau); border-color: var(--blau); color: #06121d; font-weight: 600; }
+        .chips button:disabled { opacity: 0.45; cursor: default; }
         .knopf.primaer { background: var(--akzent); border-color: var(--akzent); color: #1d1206; font-weight: 600; }
         .knopf.gefahr { background: transparent; color: var(--rot); }
         .knopf.leise { background: transparent; border-color: transparent; color: var(--panel-gedimmt); padding: 0 4px; text-decoration: underline; }
@@ -387,6 +398,10 @@
 
     <div class="steuerung">
         <a href="impressum.html" target="_blank" rel="noopener">Impressum &amp; Datenschutz</a>
+        <button id="btnLeistePause" type="button" hidden>
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path class="pause-icon" d="M7 5h3.5v14H7zM13.5 5H17v14h-3.5z"/></svg>
+            <span class="pause-text">Zeit anhalten</span>
+        </button>
         <button id="btnVollbild" type="button">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path class="vollbild-icon" d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5"/></svg>
             <span class="vollbild-text">Vollbild</span>
@@ -449,6 +464,21 @@
             </section>
 
             <section>
+                <h3>Unterbrechung</h3>
+                <p id="unterbrechungAus" class="info">Erst möglich, wenn eine Bearbeitungszeit eingestellt ist, die noch nicht abgelaufen ist.</p>
+                <div id="unterbrechungAn">
+                    <button id="btnPause" class="knopf breit" type="button">
+                        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path class="pause-icon" d="M7 5h3.5v14H7zM13.5 5H17v14h-3.5z"/></svg>
+                        <span class="pause-text">Zeit anhalten</span>
+                    </button>
+                    <p id="pauseInfo" class="info"></p>
+                    <div class="unterlabel">Zeit verlängern (z. B. nach einer Störung)</div>
+                    <div id="plusChips" class="chips"></div>
+                    <p id="plusZeile" class="info" hidden><span id="plusInfo"></span> <button id="btnPlusLoeschen" class="knopf leise" type="button">zurücknehmen</button></p>
+                </div>
+            </section>
+
+            <section>
                 <h3>Hinweise</h3>
                 <label class="feld">
                     <span>Ein Hinweis pro Zeile</span>
@@ -479,7 +509,7 @@
 
             <section>
                 <p class="klein">Alle Änderungen werden sofort übernommen und in diesem Browser gespeichert. Titel und Zeiten werden am nächsten Tag automatisch geleert, Hinweise und Anzeige bleiben erhalten.</p>
-                <p class="klein">Tastatur: <kbd>E</kbd> Einstellungen &nbsp;·&nbsp; <kbd>F</kbd> Vollbild &nbsp;·&nbsp; <kbd>Esc</kbd> schließen</p>
+                <p class="klein">Tastatur: <kbd>E</kbd> Einstellungen &nbsp;·&nbsp; <kbd>F</kbd> Vollbild &nbsp;·&nbsp; <kbd>P</kbd> Zeit anhalten/fortsetzen &nbsp;·&nbsp; <kbd>Esc</kbd> schließen</p>
                 <p class="klein"><a href="impressum.html" target="_blank" rel="noopener">Impressum &amp; Datenschutz</a></p>
                 <button id="btnReset" class="knopf gefahr" type="button">Alles zurücksetzen</button>
             </section>
@@ -503,6 +533,9 @@
             beginn: '',
             ende: '',
             ntaProzent: 0,
+            plusMin: 0,      // Verlängerung der regulären Bearbeitungszeit in Minuten
+            plusNtaMin: 0,   // Verlängerung der Zeit mit Nachteilsausgleich in Minuten
+            pause: null,     // Zeitpunkt (ms), seit dem die Zeit angehalten ist
             warnung: 10,
             hinweise: HAEUFIGE_HINWEISE.slice(0, 3).join('\n'),
             hintergrund: 'img/klasse.jpg',
@@ -522,8 +555,14 @@
             { bild: 'img/sternenhimmel.jpg', name: 'Sternenhimmel', helligkeit: 0.9 },
             { bild: 'img/buecherregal.jpg', name: 'Bücherregal', helligkeit: 0.42 }
         ];
+        const OHNE_UNTERBRECHUNG = { plusMin: 0, plusNtaMin: 0, pause: null };
         const DAUERN = [45, 90, 135, 180, 225, 270];
         const NTA_PROZENT = [0, 10, 20, 30];
+        const PLUS_MINUTEN = [1, 5, 10, 15];
+        // Kürzeres Anhalten gilt als versehentlich und verlängert nichts
+        const PAUSE_TOLERANZ_MS = 10000;
+        const ICON_PAUSE = 'M7 5h3.5v14H7zM13.5 5H17v14h-3.5z';
+        const ICON_WEITER = 'M8 5v14l11-7z';
 
         const $ = id => document.getElementById(id);
         const pad = n => String(n).padStart(2, '0');
@@ -543,7 +582,8 @@
             try { gespeichert = JSON.parse(localStorage.getItem(SPEICHER_SCHLUESSEL)); } catch (e) {}
             const z = Object.assign({}, STANDARD, gespeichert || {});
             // Titel und Zeiten gelten nur für den Tag, an dem sie eingestellt wurden
-            if (z.tag !== heute()) Object.assign(z, { titel: '', beginn: '', ende: '', ntaProzent: 0 });
+            if (z.tag !== heute()) Object.assign(z, { titel: '', beginn: '', ende: '', ntaProzent: 0 }, OHNE_UNTERBRECHUNG);
+            if (typeof z.pause !== 'number') z.pause = null;
             // Gespeicherte Bilder, die es nicht mehr gibt, durch den Standard ersetzen
             if (!hintergrundEintrag(z.hintergrund)) z.hintergrund = STANDARD.hintergrund;
             return z;
@@ -559,6 +599,8 @@
         }
 
         function aendern(neu) {
+            // Ein neuer Beginn bedeutet eine neue Klausur: Verlängerungen und Unterbrechung verwerfen
+            if ('beginn' in neu && neu.beginn !== zustand.beginn) neu = Object.assign({}, neu, OHNE_UNTERBRECHUNG);
             Object.assign(zustand, neu);
             speichern();
             auswahlMarkieren();
@@ -578,7 +620,8 @@
             return `${pad(Math.floor(m / 60))}:${pad(m % 60)}`;
         }
 
-        function uhrText(datum) {
+        function uhrText(zeit) {
+            const datum = new Date(zeit);
             return `${datum.getHours()}:${pad(datum.getMinutes())}`;
         }
 
@@ -655,49 +698,160 @@
             }
         }
 
+        // Beginn und Endzeiten (in ms) einschließlich Verlängerungen und laufender Unterbrechung.
+        // `vorPause` enthält die Endzeiten ohne die gerade laufende Unterbrechung.
+        // Eine Unterbrechung verschiebt nur Endzeiten, die bei ihrem Beginn noch bevorstanden:
+        // Wird erst während des Nachteilsausgleichs angehalten, verlängert sich nur dieser.
+        function zeitplan(jetzt) {
+            const b = inMinuten(zustand.beginn), e = inMinuten(zustand.ende);
+            if (b === null || e === null || e <= b) return null;
+            const endePlan = zeitpunktHeute(jetzt, e).getTime();
+            const vorPause = { ende: endePlan + zustand.plusMin * 60000 };
+            vorPause.endeNta = zustand.ntaProzent > 0
+                ? endePlan + (ntaMinuten(e - b) + zustand.plusNtaMin) * 60000
+                : vorPause.ende;
+            const pause = zustand.pause;
+            const laufend = pause !== null ? Math.max(0, jetzt.getTime() - pause) : 0;
+            const verschoben = ende => pause !== null && pause < ende ? ende + laufend : ende;
+            return {
+                beginn: zeitpunktHeute(jetzt, b).getTime(),
+                vorPause,
+                pause,
+                ende: verschoben(vorPause.ende),
+                endeNta: verschoben(vorPause.endeNta)
+            };
+        }
+
+        // 'vor' | 'lauf' | 'pause' | 'nta' | 'ende'
+        function phase(plan, t) {
+            if (t < plan.beginn) return 'vor';
+            if (plan.pause !== null && plan.pause < plan.vorPause.endeNta) return 'pause';
+            if (t < plan.ende) return 'lauf';
+            if (t < plan.endeNta) return 'nta';
+            return 'ende';
+        }
+
         function zeitinfoAktualisieren(jetzt) {
             const info = $('zeitinfo');
-            const b = inMinuten(zustand.beginn), e = inMinuten(zustand.ende);
-            if (b === null || e === null || e <= b) {
+            const plan = zeitplan(jetzt);
+            const status = plan ? phase(plan, jetzt.getTime()) : 'aus';
+            unterbrechungAktualisieren(plan, status, jetzt);
+            if (!plan) {
                 info.hidden = true;
                 return 'aus';
             }
 
-            const beginn = zeitpunktHeute(jetzt, b);
-            const ende = zeitpunktHeute(jetzt, e);
-            const nta = ntaMinuten(e - b);
-            const endeNta = new Date(ende.getTime() + nta * 60000);
-            const warnMs = zustand.warnung * 60000;
-
-            let status, rest, anteil;
-            let ntaText = nta ? `Nachteilsausgleich (+${zustand.ntaProzent} %) bis ${uhrText(endeNta)} Uhr` : '';
-            if (jetzt < beginn) {
-                status = 'vor';
-                rest = `Beginn in ${dauerText(beginn - jetzt)}`;
+            const t = jetzt.getTime();
+            const { beginn, ende, endeNta } = plan;
+            let klasse = status, rest, anteil;
+            let zeile = zustand.ntaProzent > 0
+                ? `Nachteilsausgleich (+${zustand.ntaProzent} %) bis ${uhrText(plan.vorPause.endeNta)} Uhr`
+                : '';
+            if (status === 'vor') {
+                rest = `Beginn in ${dauerText(beginn - t)}`;
                 anteil = 0;
-            } else if (jetzt < ende) {
-                status = ende - jetzt <= warnMs ? 'warn' : 'lauf';
-                rest = `noch ${dauerText(ende - jetzt)}`;
-                anteil = (jetzt - beginn) / (ende - beginn);
-            } else if (jetzt < endeNta) {
-                status = 'nta';
-                rest = `Nachteilsausgleich: noch ${dauerText(endeNta - jetzt)}`;
-                ntaText = 'Reguläre Bearbeitungszeit beendet';
+            } else if (status === 'lauf') {
+                if (ende - t <= zustand.warnung * 60000) klasse = 'warn';
+                rest = `noch ${dauerText(ende - t)}`;
+                anteil = (t - beginn) / (ende - beginn);
+            } else if (status === 'pause') {
+                // Restzeit bleibt auf dem Stand vom Beginn der Unterbrechung stehen
+                const regulaer = plan.pause < plan.vorPause.ende;
+                const restMs = (regulaer ? plan.vorPause.ende : plan.vorPause.endeNta) - plan.pause;
+                rest = regulaer
+                    ? `Unterbrochen – noch ${dauerText(restMs)}`
+                    : `Unterbrochen – Nachteilsausgleich noch ${dauerText(restMs)}`;
+                zeile = `Zeit angehalten seit ${uhrText(plan.pause)} Uhr`;
+                anteil = regulaer ? (plan.pause - beginn) / (plan.vorPause.ende - beginn) : 1;
+            } else if (status === 'nta') {
+                rest = `Nachteilsausgleich: noch ${dauerText(endeNta - t)}`;
+                zeile = 'Reguläre Bearbeitungszeit beendet';
                 anteil = 1;
             } else {
-                status = 'ende';
                 rest = 'Bearbeitungszeit beendet';
                 anteil = 1;
             }
 
+            const plusText = zustand.plusMin > 0 ? ` (+${zustand.plusMin} min)` : '';
             info.hidden = false;
-            info.className = `zeitinfo ${status}`;
-            textSetzen($('zeitraum'), `Bearbeitungszeit ${uhrText(beginn)} – ${uhrText(ende)} Uhr`);
+            info.className = `zeitinfo ${klasse}`;
+            textSetzen($('zeitraum'), `Bearbeitungszeit ${uhrText(beginn)} – ${uhrText(plan.vorPause.ende)} Uhr${plusText}`);
             textSetzen($('restzeit'), rest);
-            textSetzen($('ntaZeile'), ntaText);
-            $('ntaZeile').hidden = !ntaText;
-            $('balken').style.width = `${(anteil * 100).toFixed(2)}%`;
-            return `${status}|${ntaText !== ''}`;
+            textSetzen($('ntaZeile'), zeile);
+            $('ntaZeile').hidden = !zeile;
+            $('balken').style.width = `${(Math.min(1, anteil) * 100).toFixed(2)}%`;
+            return `${klasse}|${zeile !== ''}`;
+        }
+
+        // ---------- Unterbrechung: anhalten, fortsetzen, verlängern ----------
+
+        // Minuten an die Endzeiten anhängen, die zum Zeitpunkt `ab` noch bevorstanden
+        function verlaengerung(plan, ab, minuten) {
+            return {
+                plusMin: zustand.plusMin + (ab < plan.vorPause.ende ? minuten : 0),
+                plusNtaMin: zustand.plusNtaMin + (ab < plan.vorPause.endeNta ? minuten : 0)
+            };
+        }
+
+        function pauseUmschalten() {
+            const jetzt = new Date();
+            const plan = zeitplan(jetzt);
+            if (!plan) return;
+            const status = phase(plan, jetzt.getTime());
+            if (status === 'pause') {
+                // Die Dauer der Unterbrechung wird zugunsten der Schüler:innen auf volle Minuten aufgerundet
+                const dauer = jetzt.getTime() - plan.pause;
+                const minuten = dauer < PAUSE_TOLERANZ_MS ? 0 : Math.ceil(dauer / 60000);
+                aendern(Object.assign({ pause: null }, verlaengerung(plan, plan.pause, minuten)));
+            } else if (status === 'lauf' || status === 'nta') {
+                aendern({ pause: jetzt.getTime() });
+            }
+        }
+
+        function verlaengern(minuten) {
+            const jetzt = new Date();
+            const plan = zeitplan(jetzt);
+            if (!plan) return;
+            // Während einer Unterbrechung zählt ihr Beginn als Bezugspunkt
+            const ab = plan.pause !== null ? plan.pause : jetzt.getTime();
+            if (ab >= plan.vorPause.endeNta) return;
+            aendern(verlaengerung(plan, ab, minuten));
+        }
+
+        function unterbrechungAktualisieren(plan, status, jetzt) {
+            const pausiert = status === 'pause';
+            const anhaltbar = pausiert || status === 'lauf' || status === 'nta';
+            const verlaengerbar = anhaltbar || status === 'vor';
+
+            $('btnLeistePause').hidden = !anhaltbar;
+            $('unterbrechungAus').hidden = verlaengerbar;
+            $('unterbrechungAn').hidden = !verlaengerbar;
+            $('btnPause').disabled = !anhaltbar;
+            document.querySelectorAll('#btnPause, #btnLeistePause').forEach(k => k.classList.toggle('pausiert', pausiert));
+            document.querySelectorAll('.pause-text').forEach(el => textSetzen(el, pausiert ? 'Zeit fortsetzen' : 'Zeit anhalten'));
+            document.querySelectorAll('.pause-icon').forEach(el => {
+                const d = pausiert ? ICON_WEITER : ICON_PAUSE;
+                if (el.getAttribute('d') !== d) el.setAttribute('d', d);
+            });
+            document.querySelectorAll('#plusChips button').forEach(k => { k.disabled = !verlaengerbar; });
+
+            let info;
+            if (pausiert) {
+                info = `Angehalten seit ${uhrText(plan.pause)} Uhr (${dauerText(jetzt.getTime() - plan.pause)}). ` +
+                    'Beim Fortsetzen wird die Unterbrechung auf volle Minuten aufgerundet ans Ende angehängt.';
+            } else if (status === 'vor') {
+                info = 'Anhalten ist ab Beginn der Bearbeitungszeit möglich.';
+            } else {
+                info = 'Hält die Restzeit an, z. B. bei Feueralarm. Beim Fortsetzen wird die Dauer der Unterbrechung ' +
+                    '(auf volle Minuten aufgerundet) ans Ende angehängt.';
+            }
+            textSetzen($('pauseInfo'), info);
+
+            const { plusMin, plusNtaMin } = zustand;
+            $('plusZeile').hidden = !(plusMin || plusNtaMin);
+            textSetzen($('plusInfo'), zustand.ntaProzent > 0 && plusNtaMin !== plusMin
+                ? `Bisher verlängert: ${plusMin} min, mit Nachteilsausgleich ${plusNtaMin} min.`
+                : `Bisher verlängert um ${Math.max(plusMin, plusNtaMin)} min.`);
         }
 
         // Größte Schrift suchen, bei der alle Hinweise in den freien Platz passen
@@ -808,6 +962,12 @@
                 $('ntaChips').insertBefore(k, ntaFeld);
                 k.addEventListener('click', () => { aendern({ ntaProzent: prozent }); formularFuellen(); });
             });
+
+            PLUS_MINUTEN.forEach(min => knopf(`+${min} min`, { plus: min }, $('plusChips'))
+                .addEventListener('click', () => verlaengern(min)));
+            $('btnPlusLoeschen').addEventListener('click', () => aendern({ plusMin: 0, plusNtaMin: 0 }));
+            $('btnPause').addEventListener('click', pauseUmschalten);
+            $('btnLeistePause').addEventListener('click', pauseUmschalten);
 
             HAEUFIGE_HINWEISE.forEach(text => knopf(text, { text }, $('hinweisChips')).addEventListener('click', () => {
                 const zeilen = hinweisZeilen(zustand.hinweise);
@@ -947,6 +1107,8 @@
                 if (panelOffen()) panelSchliessen(); else panelOeffnen();
             } else if (taste === 'f') {
                 vollbildUmschalten();
+            } else if (taste === 'p') {
+                pauseUmschalten();
             }
         });
 
